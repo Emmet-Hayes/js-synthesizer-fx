@@ -1,0 +1,220 @@
+<head>
+    <script src="https://unpkg.com/@webcomponents/webcomponentsjs@^2/webcomponents-bundle.js"></script>
+	<script src="https://tonejs.github.io/build/Tone.js"></script>
+	<script src="https://unpkg.com/@tonejs/ui"></script>
+	<style type="text/css">
+		body {
+			background-color: indigo;
+			font-family: "Arial", sans-serif;
+			font-weight: bold;
+			font-size: 20;
+			color: white;
+			text-align: center;
+		}
+		h1 {
+			padding-top: 20px;
+		}
+		tone-content {
+		    opacity: 0.88;
+		}
+		tone-piano {
+			color: purple;
+		}
+		tone-synth {
+			color: purple;
+		}
+		tone-compressor {
+		    color: darkmagenta;
+		}
+		tone-distortion {
+		    color: darkorchid;
+		}
+		tone-chorus {
+		    color: magenta;
+		}
+		tone-auto-panner {
+			color: darkviolet;
+		}
+		tone-auto-filter {
+			color: blueviolet;
+		}
+		tone-tremolo {
+			color: mediumpurple;
+		}
+		tone-ping-pong-delay {
+			color: fuchsia;
+		}
+		tone-reverb {
+			color: mediumslateblue;
+		}
+		a {
+			color: red;
+		}
+		p {
+			font-size: 10;
+		}
+	</style>
+</head>
+<body>
+	<h1> synthesizer with fx &lt;3 </h1>
+	<tone-content>
+		<tone-piano polyphonic=""></tone-piano>
+		<tone-synth polyphonic=""></tone-synth>
+		<tone-compressor></tone-compressor>
+		<tone-distortion></tone-distortion>
+		<tone-chorus></tone-chorus>
+		<tone-auto-panner></tone-auto-panner>
+		<tone-auto-filter></tone-auto-filter>
+		<tone-tremolo></tone-tremolo>
+		<tone-ping-pong-delay></tone-ping-pong-delay>
+		<tone-reverb></tone-reverb>
+	</tone-content>
+	<p>Made by <a href="https://github.com/Emmet-Hayes">Emmet Hayes</a> with <a href="https://tonejs.github.io/">Tone.js</a> </p>
+	<p>Check out my other stuff <a href="https://salty-sands-81911.herokuapp.com/deep_surfer">here</a> :)</p>
+	<script type="text/javascript">
+		var panner = new Tone.AutoPanner({
+			frequency : 4,
+			depth : 0.5,
+			type : "sine",
+			wet : 0.5
+		}).toMaster().start();
+
+		var filter = new Tone.AutoFilter({
+			wet : 0.5, 
+			frequency : 1 ,
+            type : "sine",
+            depth : 1 ,
+            baseFrequency : 200 ,
+            octaves : 2.6 ,
+            filter : {
+                type : "lowpass",
+                rolloff : -12 ,
+                Q : 1
+            }
+		}).toMaster().start();
+
+		var tremolo = new Tone.Tremolo({
+            frequency : 10 ,
+            type : "sine",
+            depth : 0.5 ,
+            spread : 180,
+            wet: 0.7
+		}).toMaster().start();
+
+        var chorus = new Tone.Chorus({
+            frequency : 0.2,
+            delayTime : 0.5,
+            spread : 90,
+            depth : 0.25,
+            type : "sine"
+        }).toMaster();
+        
+        var compressor = new Tone.Compressor({
+            attack : 0.01,
+            release : 0.01,
+            threshold : -12,
+            ratio : 4,
+            knee : 30 
+        }).toMaster();
+        
+        var distortion = new Tone.Distortion({
+            distortion : 0.01
+        }).toMaster();
+        
+		var reverb = new Tone.Reverb({
+		    decay: 2.0,
+		    predelay: 0.2,
+			wet : 0.5
+		});
+		
+		var delay = new Tone.PingPongDelay({
+			delayTime : "8n",
+			feedback : 0.5, 
+			wet : 0.4
+		}).toMaster();
+
+		var synth = new Tone.PolySynth(8, Tone.Synth, {
+			volume : -15,
+			detune : 0.0,
+			oscillator : {
+				type : "sine",
+				detune : 0,
+                phase : 0,
+                partials : [1.0, 0.5, 0.0, 0.25, 0.0, 0.1, 0.0, 0.125,
+                            0.0, 0.1, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0625],
+                partialCount : 16
+			}
+		}).chain(compressor, distortion, chorus, panner, filter, tremolo, delay, reverb, Tone.Master); //chain it all up and connect to master output
+		
+		synth.set({
+		    "filter" : {
+		        "type" : "lowpass"
+		    },
+		    "envelope" : {
+		        "attack" : 0.01,
+		        "release" : 0.01
+		    }
+		});
+		
+		//bind the interface
+		document.querySelector("tone-chorus").bind(chorus);
+        document.querySelector("tone-compressor").bind(compressor);
+        document.querySelector("tone-distortion").bind(distortion);
+		document.querySelector("tone-auto-panner").bind(panner);
+		document.querySelector("tone-auto-filter").bind(filter);
+		document.querySelector("tone-tremolo").bind(tremolo);
+		document.querySelector("tone-ping-pong-delay").bind(delay);
+		document.querySelector("tone-reverb").bind(reverb);
+		document.querySelector("tone-piano").bind(synth);
+		document.querySelector("tone-synth").bind(synth);
+		
+		//here we re-style the UI
+		//in order to re-style these pre-defined widgets, we have to access the DOM and get shadow roots
+		const synthBGColor = "pink";
+		
+		const tonePiano = document.querySelector("tone-piano").shadowRoot.querySelector("#container");
+		tonePiano.style.backgroundColor = synthBGColor;
+		
+		const toneSynth = document.querySelector("tone-synth").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneSynth.style.backgroundColor = synthBGColor;
+	    toneSynth.style.borderColor = synthBGColor;
+	    document.querySelector("tone-synth").shadowRoot.querySelector("tone-rack").querySelector("tone-oscillator").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container").style.backgroundColor = synthBGColor;
+	    document.querySelector("tone-synth").shadowRoot.querySelector("tone-rack").querySelector("tone-oscillator").shadowRoot.querySelector("tone-rack").querySelector("tone-select").shadowRoot.querySelector("#container").style.backgroundColor = synthBGColor;
+        document.querySelector("tone-synth").shadowRoot.querySelector("tone-rack").querySelector("tone-envelope").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container").style.backgroundColor = synthBGColor; 
+
+	    const toneComp =
+	    document.querySelector("tone-compressor").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneComp.style.backgroundColor = synthBGColor;
+	    toneComp.style.borderRadius = "0";
+	    toneComp.style.borderColor = synthBGColor;
+	    
+	    const toneDist = document.querySelector("tone-distortion").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneDist.style.backgroundColor = synthBGColor;
+	    toneDist.style.borderColor = synthBGColor;
+	    
+	    const toneChor = document.querySelector("tone-chorus").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneChor.style.backgroundColor = synthBGColor;
+	    toneChor.style.borderColor = synthBGColor;
+	    
+	    const tonePan = document.querySelector("tone-auto-panner").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    tonePan.style.backgroundColor = synthBGColor;
+	    tonePan.style.borderColor = synthBGColor;
+	    
+	    const toneFilt = document.querySelector("tone-auto-filter").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneFilt.style.backgroundColor = synthBGColor;
+	    toneFilt.style.borderColor = synthBGColor;
+	    document.querySelector("tone-auto-filter").shadowRoot.querySelector("tone-rack").querySelector("tone-filter").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container").style.backgroundColor = synthBGColor;
+	    
+	    const toneTrem = document.querySelector("tone-tremolo").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneTrem.style.backgroundColor = synthBGColor;
+	    toneTrem.style.borderColor = synthBGColor;
+	    
+	    const toneDel = document.querySelector("tone-ping-pong-delay").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneDel.style.backgroundColor = synthBGColor;
+	    toneDel.style.borderColor = synthBGColor;
+	    
+	    const toneRev = document.querySelector("tone-reverb").shadowRoot.querySelector("tone-rack").shadowRoot.querySelector("#container");
+	    toneRev.style.backgroundColor = synthBGColor;
+	    toneRev.style.borderColor = synthBGColor;
+	</script>
+</body>
